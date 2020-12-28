@@ -1,1 +1,5 @@
-export * from './lib/number';
+import Query from './lib/Queries/Query'
+
+export {
+  Query
+}

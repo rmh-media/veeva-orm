@@ -1,12 +1,12 @@
 # Veeva ORM
 
-ORM Library for use with the Veeva CRM Ecosystem (MyInsights, CLM, etc.)
+Unopiniated ORM Library for use with the [Veeva](https://veeva.com) CRM Ecosystem (MyInsights, CLM, etc.).
+Slightly inspired by Laravel Eloquent :)
 
-We – [RMH MEDIA](https://rmh-media.com) – are building applications with and for the [Veeva](https://veeva.com) ecosystem.
-Within this ecosystem, a data layer can be used to interact with information stored in the CRM.
-
-Veeva provides simple JavaScript utilities to work in a CRUDish way with it but for more sophisticated applications this might not be enough – 
-at least not for us 👻.
+## Why?
+During [our work](https://rmh-media.com) we had to build some kind of data abstraction to interact with VeevaCRM data multiple times.
+[Veeva](https://veeva.com) provides simple JavaScript utilities to work in a *CRUDish* way with their data but for more sophisticated 
+applications this might not be enough – so we started this unopinioated project 👻.
 
 ## Goal
 The goal of this project is to build a sustainable data layer which can be used throughout different Veeva Applications. 
@@ -21,21 +21,22 @@ npm install @rmh-media/veeva-orm-core @rmh-media/veeva-orm-myinsights-adapter --
 ```
 *Checkout the [the docs](./docs/index.md) for more information about adapters.*
 
-
 **Use it**
-```ecmascript 6
+```javascript
 import { Manager, Query } from '@rmh-media/veeva-orm-core'
-import { Adapter } from '@rmh-media/veeva-orm-myinsights-adapter'
+import { Adapter as ClmAdapter} from '@rmh-media/veeva-orm-myinsights-adapter'
 
-// create a new manager singleton instance
-const manager = Manager.init(new Adapter())
+// setup the manager
+Manager.init(new ClmAdapter())
 
-// create a query
+// create a select query
 const currentAccount = await Query
-    .select('FirstName', 'LastName')
-    .from('Account')
-    .whereCurrent()
+    .select('Name', 'FirstName', 'LastName')
+    .fromCurrent('Account')
     .exec()
+
+// who am i?
+console.log(`I am ${currentAccount.Name}`) // I am Batman
 ```
 
-Checkout the detailed guides in the [docs/guides/](docs/guides/) folder
+*You'll find more samples in the docs [the docs](./docs/index.md).*
