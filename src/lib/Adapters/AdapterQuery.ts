@@ -9,10 +9,17 @@ export interface Term {
   field: string
 }
 
-export default interface AdapterQuery {
+export enum SortDirection {
+  ASC = 'ASC',
+  DESC = 'DESC'
+}
+
+export interface AdapterQuery {
   type: QueryType,
   where: Array<Array<Term>>
-  object: string | null,
+  object: string,
   fields: Array<string>,
-  values: {string: string} | null
+  values: Map<string, string>
+  limit: number | null,
+  sort: Map<string, SortDirection>
 }

@@ -3,4 +3,6 @@ import AdapterResult from './AdapterResult'
 
 export default interface IAdapter {
   runQuery(query: AdapterQuery): Promise<AdapterResult>
+
+  fetchFields(object: string): Promise<string[]>
 }
