@@ -1,32 +1,50 @@
 import IAdapter from './Adapters/IAdapter'
+import OnlineAdapter from './Adapters/OnlineAdapter'
+import OfflineAdapter from './Adapters/OfflineAdapter'
+import MockAdapter from './Adapters/MockAdapter'
 
 export default class Manager {
-  private readonly _adapter: IAdapter
+  private _adapter: IAdapter
   private static instance: Manager
 
-  private constructor (adapter: IAdapter) {
-    this._adapter = adapter
+  private static isOnline (): boolean {
+    return /(cdnhtml|cloudfront.net)/gi.test(window.location.hostname)
+  }
+
+  private static isLocalhost (): boolean {
+    return ['localhost', '0.0.0.0', '127.0.0.1'].includes(window.location.hostname)
+  }
+
+  private static createDefaultAdapter (): IAdapter {
+    if (Manager.isLocalhost()) {
+      console.warn('Running on Localhost, using Mock Adapter')
+      return new MockAdapter()
+    }
+
+    return Manager.isOnline()
+      ? new OnlineAdapter()
+      : new OfflineAdapter()
+  }
+
+  public static getInstance (): Manager {
+    if (!Manager.instance) {
+      Manager.instance = new Manager()
+    }
+
+    return Manager.instance
+  }
+
+  private constructor () {
+    this._adapter = Manager.createDefaultAdapter()
   }
 
   get adapter (): IAdapter {
     return this._adapter
   }
 
-  public static getInstance (): Manager {
-    if (!Manager.instance) {
-      throw new Error('The default Manager was not initialized. Did you call `init` before?')
-    }
+  public use (adapter: IAdapter): this {
+    this._adapter = adapter
 
-    return Manager.instance
-  }
-
-  public init (adapter: IAdapter) {
-    if (!Manager.instance) {
-      Manager.instance = new Manager(adapter)
-
-      return Manager.instance
-    }
-
-    return new Manager(adapter)
+    return this
   }
 }

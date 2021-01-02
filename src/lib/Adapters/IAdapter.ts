@@ -1,8 +1,6 @@
-import AdapterQuery from './AdapterQuery'
+import { AdapterQuery } from './AdapterQuery'
 import AdapterResult from './AdapterResult'
 
 export default interface IAdapter {
-  runQuery(query: AdapterQuery): Promise<AdapterResult>
-
-  fetchFields(object: string): Promise<string[]>
+  runQuery (query: AdapterQuery): Promise<AdapterResult>
 }

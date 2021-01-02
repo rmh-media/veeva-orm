@@ -1,3 +1,4 @@
 export default interface AdapterResult {
-  success: boolean
+  success: boolean,
+  objects: any[]
 }

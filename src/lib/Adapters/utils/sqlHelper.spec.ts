@@ -1,7 +1,9 @@
 import it from 'ava'
-import { buildSortClause, buildWhereClause } from './commandBuilder'
-import { SortDirection, Term } from './AdapterQuery'
-import { Operator } from '../Queries/QueryWithWhereClause'
+
+import { Operator } from '../../Queries/QueryWithWhereClause'
+import { SortDirection, Term } from '../AdapterQuery'
+
+import { buildSortClause, buildWhereClause } from './sqlHelper'
 
 it('creates an empty where clause', t => {
   const clause = buildWhereClause([])

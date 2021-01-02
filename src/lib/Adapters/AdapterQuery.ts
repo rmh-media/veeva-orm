@@ -5,7 +5,7 @@ export enum QueryType {
 
 export interface Term {
   operator: string,
-  value: unknown,
+  value: any,
   field: string
 }
 

@@ -1,5 +1,5 @@
 {
-  "name": "@rmh-media/veeva-orm-core",
+  "name": "@rmh-media/veeva-orm",
   "version": "1.0.0",
   "description": "ORM Library for use with the Veeva CRM Ecosystem (MyInsights, CLM, etc.)",
   "main": "build/main/index.js",

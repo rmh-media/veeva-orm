@@ -1,4 +1,5 @@
-import AdapterQuery, {
+import {
+  AdapterQuery,
   QueryType,
   SortDirection
 } from '../Adapters/AdapterQuery'

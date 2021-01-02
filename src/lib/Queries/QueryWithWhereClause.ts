@@ -3,7 +3,6 @@ import BaseQuery from './BaseQuery'
 export enum Operator {
   EQUALS = '=',
   IN = 'IN',
-  NOT_IN = 'NOT IN',
   LIKE = 'LIKE',
 }
 
@@ -29,16 +28,6 @@ export default class QueryWithWhereClause extends BaseQuery {
     this._adapterQuery.where[0].push({
       field,
       operator: Operator.IN,
-      value: list
-    })
-
-    return this
-  }
-
-  public whereNotIn (field: string, list: Array<unknown>): this {
-    this._adapterQuery.where[0].push({
-      field,
-      operator: Operator.NOT_IN,
       value: list
     })
 

@@ -1,17 +1,4 @@
-import { AdapterQuery, QueryType, SortDirection, Term } from './AdapterQuery'
-
-/**
- * Some Objects don't use the default API names here – not sure why so this
- * list might not be complete but it is enough so far :D
- */
-// const CURRENT_CALL_ALIASES = {
-//   Clm_Presentation_vod__c: 'Presentation',
-//   Key_Message_vod__c: 'KeyMessage',
-//   Call_Objective_vod__c: 'CallObjective',
-//   ChildAccount_TSF_vod__c: 'TSF',
-//   Address_vod__c: 'Address',
-//   Call2_vod__c: 'Call'
-// }
+import { SortDirection, Term } from '../AdapterQuery'
 
 function formatBooleanValue (v: boolean): string {
   return v ? 'true' : 'false'
@@ -63,35 +50,4 @@ export function buildSortClause (sort: Map<string, SortDirection>) {
   }
 
   return items
-}
-
-function buildSelectCommand (q: AdapterQuery): Array<string> {
-  const cmd = [
-    `queryObject(${q.object})`,
-    `fields(${q.fields.join(',')})`
-  ]
-
-  if (q.where.length) {
-    cmd.push(`where(${buildWhereClause(q.where)})`)
-  }
-
-
-  if (q.sort.size) {
-    cmd.push(`sort(${buildSortClause(q.sort)})`)
-  }
-
-  if (q.limit) {
-    cmd.push(`limit(${q.limit})`)
-  }
-
-  return cmd
-}
-
-export function buildCommand (query: AdapterQuery): Array<string> {
-  switch (query.type) {
-    case QueryType.SELECT:
-      return buildSelectCommand(query)
-    default:
-      throw new Error('Adapter does not support the given Query')
-  }
 }
