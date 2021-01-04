@@ -17,7 +17,22 @@ applications this might not be enough – so we started this unopinioated projec
 The goal of this project is to build a sustainable data layer which can be used throughout different Veeva Applications. 
 We are currently targeting MyInsights and CLM – but we might add Engage in the near future.
 
-## TL;RD
+## Features / Status
+
+- ❌ Won't be implemented
+- 🚼 Work in Progress
+- ✅ Fully Implemented
+- ⚠️ With Limitations
+
+| Feature | Offline Adapter | Online Adapter | Mock Adapter |
+| ------- | :-------------: | :------------: | :----------: |
+| Query: Select | 🚼 | 🚼 | ✅ |
+| Query: Insert | 🚼 | 🚼 | ✅ |
+| Query: Delete | 🚼 | 🚼 | 🚼 |
+| Query: Update | 🚼 | 🚼 | 🚼 |
+
+
+## Usage
 
 **Install it**
 ```bash

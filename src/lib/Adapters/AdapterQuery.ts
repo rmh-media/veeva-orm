@@ -1,6 +1,8 @@
 export enum QueryType {
   SELECT,
-  SELECT_CURRENT
+  SELECT_CURRENT,
+  INSERT,
+  DELETE
 }
 
 export interface Term {
@@ -14,12 +16,16 @@ export enum SortDirection {
   DESC = 'DESC'
 }
 
+export interface InsertValues {
+  [key: string]: number | string | boolean
+}
+
 export interface AdapterQuery {
   type: QueryType,
   where: Array<Array<Term>>
   object: string,
   fields: Array<string>,
-  values: Map<string, string>
+  values: InsertValues,
   limit: number | null,
   sort: Map<string, SortDirection>
 }

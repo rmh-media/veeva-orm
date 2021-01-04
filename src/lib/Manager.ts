@@ -4,7 +4,7 @@ import OfflineAdapter from './Adapters/OfflineAdapter'
 import MockAdapter from './Adapters/MockAdapter'
 
 export default class Manager {
-  private _adapter: IAdapter
+  private _adapter: IAdapter | null = null
   private static instance: Manager
 
   private static isOnline (): boolean {
@@ -34,11 +34,11 @@ export default class Manager {
     return Manager.instance
   }
 
-  private constructor () {
-    this._adapter = Manager.createDefaultAdapter()
-  }
-
   get adapter (): IAdapter {
+    if (!this._adapter) {
+      this._adapter = Manager.createDefaultAdapter()
+    }
+
     return this._adapter
   }
 

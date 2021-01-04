@@ -2,8 +2,8 @@ import it from 'ava'
 
 import { QueryType } from '../Adapters/AdapterQuery'
 
-import SelectQuery from './SelectQuery'
 import Query from './Query'
+import SelectQuery from './SelectQuery'
 
 
 it('should be possible to create it', t => {

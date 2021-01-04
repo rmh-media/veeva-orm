@@ -1,6 +1,6 @@
 import { Operator } from '../Queries/QueryWithWhereClause'
 
-import { AdapterQuery, QueryType, Term } from './AdapterQuery'
+import { AdapterQuery, QueryType, SortDirection, Term } from './AdapterQuery'
 import AdapterResult from './AdapterResult'
 import IAdapter from './IAdapter'
 
@@ -61,6 +61,30 @@ function project (fields: string[]): (item: any) => any {
   }
 }
 
+function sort (sort: Map<string, SortDirection>): (a: any, b: any) => number {
+  return (a, b) => {
+    for (const [field, direction] of sort.entries()) {
+      const val = direction === SortDirection.ASC
+        ? 1
+        : -1
+
+      if (a[field] === b[field]) {
+        continue
+      }
+
+      if (a[field] < b[field]) {
+        return val
+      } else if (a[field] > b[field]) {
+        return val * -1
+      }
+
+      return 0
+    }
+
+    return 0
+  }
+}
+
 export default class MockAdapter implements IAdapter {
   private _objects = new Map<string, any[]>()
   private _defaults = new Map<string, string>()
@@ -88,6 +112,10 @@ export default class MockAdapter implements IAdapter {
       return this.runSelectQuery(query)
     } else if (query.type === QueryType.SELECT_CURRENT) {
       return this.runSelectCurrentQuery(query)
+    } else if (query.type === QueryType.INSERT) {
+      return this.runInsertQuery(query)
+    } else if (query.type === QueryType.DELETE) {
+      return this.runDeleteQuery(query)
     }
 
     throw new Error('Query Type not supported')
@@ -117,18 +145,12 @@ export default class MockAdapter implements IAdapter {
 
     const objects = this._objects.get(query.object)!
       .filter(filter(query.where))
-      .map(project(query.fields))
 
-    return Promise.resolve({
-      success: true,
-      objects
-    })
+    return Promise.resolve(MockAdapter.generateResult(query, objects))
   }
 
   private runSelectCurrentQuery (query: AdapterQuery): Promise<AdapterResult> {
-    if (!this._objects.has(query.object)) {
-      return Promise.reject(new Error(`Object ${query.object} was not filled`))
-    }
+    this.validateQuery(query)
 
     if (!this._defaults.has(query.object)) {
       return Promise.resolve({
@@ -141,11 +163,68 @@ export default class MockAdapter implements IAdapter {
       .filter((item) => {
         return item.Id === this._defaults.get(query.object)
       })
+
+    return Promise.resolve(MockAdapter.generateResult(query, objects))
+  }
+
+  private static generateResult (query: AdapterQuery, objects: any[]): AdapterResult {
+    objects = objects
       .map(project(query.fields))
+
+    if (query.limit) {
+      objects = objects.slice(0, query.limit)
+    }
+
+    if (query.sort.size) {
+      objects = objects.sort(sort(query.sort))
+    }
+
+    return {
+      success: true,
+      objects
+    }
+  }
+
+  private runInsertQuery (query: AdapterQuery): Promise<AdapterResult> {
+    if (!this._schemas.has(query.object)) {
+      console.warn(`Could not validate Schema as there are no Objects for ${query.object}`)
+    } else {
+      const unmatchedField = Object.keys(query.values).find((field) => {
+        return !this._schemas.get(query.object)!.includes(field)
+      })
+
+      if (unmatchedField) {
+        throw new Error(`Object '${query.object} does not have a field named '${unmatchedField}'`)
+      }
+    }
+
+    const o = JSON.parse(JSON.stringify(query.values))
+
+    if (this._objects.has(query.object)) {
+      this._objects.get(query.object)!.push(o)
+    } else {
+      this.fill(query.object, [o])
+    }
 
     return Promise.resolve({
       success: true,
-      objects
+      objects: []
+    })
+  }
+
+  private runDeleteQuery (query: AdapterQuery): Promise<AdapterResult> {
+    this.validateQuery(query)
+
+    const objects = this._objects.get(query.object)!
+    const candidates = objects.filter(filter(query.where))
+
+    candidates.forEach(o => {
+      objects.splice(objects.indexOf(o), 1)
+    })
+
+    return Promise.resolve({
+      success: true,
+      objects: []
     })
   }
 }
