@@ -28,8 +28,8 @@ We are currently targeting MyInsights and CLM – but we might add Engage in the
 | ------- | :-------------: | :------------: | :----------: |
 | Query: Select | 🚼 | 🚼 | ✅ |
 | Query: Insert | 🚼 | 🚼 | ✅ |
-| Query: Delete | 🚼 | 🚼 | 🚼 |
-| Query: Update | 🚼 | 🚼 | 🚼 |
+| Query: Delete | 🚼 | 🚼 | ✅ |
+| Query: Update | 🚼 | 🚼 | ✅ |
 
 ## Usage
 

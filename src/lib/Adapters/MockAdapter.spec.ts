@@ -4,8 +4,8 @@ import { Query } from '../../index'
 import objects from '../../test/fixtures/objects'
 
 import { SortDirection } from './AdapterQuery'
-import MockAdapter from './MockAdapter'
 import IAdapter from './IAdapter'
+import MockAdapter from './MockAdapter'
 
 function getAdapter (): IAdapter {
   const adapter = new MockAdapter()
@@ -120,4 +120,36 @@ it('should update objects', async t => {
   t.is(results.objects[1].FirstName, 'Peter')
   t.is(results.objects[1].LastName, 'Parker')
   t.is(results.objects[1].Name, 'Unknown')
+})
+
+it('should select the current object', async t => {
+  const adapter = getAdapter() as MockAdapter
+  adapter.setDefaultId('Account', 'cap')
+
+  const res = await Query
+    .select('Name')
+    .fromCurrent('Account')
+    .exec(adapter)
+
+  t.is(res.objects.length, 1)
+  t.is(res.objects[0].Name, 'Captain America')
+})
+
+it('should update the current object', async t => {
+  const adapter = getAdapter() as MockAdapter
+  adapter.setDefaultId('Account', 'iron-man')
+
+  await Query
+    .updateCurrent('Account')
+    .set('LastName', 'Padilla')
+    .exec(adapter)
+
+  const res = await Query
+    .select('Name', 'LastName')
+    .fromCurrent('Account')
+    .exec(adapter)
+
+  t.is(res.objects.length, 1)
+  t.is(res.objects[0].Name, 'Iron Man')
+  t.is(res.objects[0].LastName, 'Padilla')
 })

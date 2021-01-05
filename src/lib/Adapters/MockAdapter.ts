@@ -90,6 +90,32 @@ export default class MockAdapter implements IAdapter {
   private _defaults = new Map<string, string>()
   private _schemas = new Map<string, string[]>()
 
+
+  private static emptyResult (): Promise<AdapterResult> {
+    return Promise.resolve({
+      success: true,
+      objects: []
+    })
+  }
+
+  private static generateResult (query: AdapterQuery, objects: any[]): AdapterResult {
+    if (query.limit) {
+      objects = objects.slice(0, query.limit)
+    }
+
+    if (query.sort.size) {
+      objects = objects.sort(sort(query.sort))
+    }
+
+    objects = objects
+      .map(project(query.fields))
+
+    return {
+      success: true,
+      objects
+    }
+  }
+
   fill (object: string, items: any[]): this {
     this._objects.set(object, items)
     if (items.length > 0) {
@@ -103,6 +129,8 @@ export default class MockAdapter implements IAdapter {
 
   setDefaultId (object: string, id: string): this {
     this._defaults.set(object, id)
+
+    console.debug(`Set Current Id "${id}" for "${object}"`)
 
     return this
   }
@@ -172,24 +200,6 @@ export default class MockAdapter implements IAdapter {
     return Promise.resolve(MockAdapter.generateResult(query, objects))
   }
 
-  private static generateResult (query: AdapterQuery, objects: any[]): AdapterResult {
-    if (query.limit) {
-      objects = objects.slice(0, query.limit)
-    }
-
-    if (query.sort.size) {
-      objects = objects.sort(sort(query.sort))
-    }
-
-    objects = objects
-      .map(project(query.fields))
-
-    return {
-      success: true,
-      objects
-    }
-  }
-
   private runInsertQuery (query: AdapterQuery): Promise<AdapterResult> {
     if (!this._schemas.has(query.object)) {
       console.warn(`Could not validate Schema as there are no Objects for ${query.object}`)
@@ -211,10 +221,7 @@ export default class MockAdapter implements IAdapter {
       this.fill(query.object, [o])
     }
 
-    return Promise.resolve({
-      success: true,
-      objects: []
-    })
+    return MockAdapter.emptyResult()
   }
 
   private runDeleteQuery (query: AdapterQuery): Promise<AdapterResult> {
@@ -227,10 +234,7 @@ export default class MockAdapter implements IAdapter {
       objects.splice(objects.indexOf(o), 1)
     })
 
-    return Promise.resolve({
-      success: true,
-      objects: []
-    })
+    return MockAdapter.emptyResult()
   }
 
   private runUpdateQuery (query: AdapterQuery): Promise<AdapterResult> {
@@ -243,19 +247,25 @@ export default class MockAdapter implements IAdapter {
       Object.assign(o, Object.fromEntries(query.values.entries()))
     })
 
-    return Promise.resolve({
-      success: true,
-      objects: []
-    })
+    return MockAdapter.emptyResult()
   }
 
   private runUpdateCurrentQuery (query: AdapterQuery): Promise<AdapterResult> {
     this.validateQuery(query)
-    // todo
-    return Promise.resolve({
-      success: true,
-      objects: []
-    })
+
+    if (!this._defaults.has(query.object)) {
+      return MockAdapter.emptyResult()
+    }
+
+    const o = this._objects
+      .get(query.object)!
+      .find(obj => obj.Id === this._defaults.get(query.object))
+
+    if (o) {
+      Object.assign(o, Object.fromEntries(query.values.entries()))
+    }
+
+    return MockAdapter.emptyResult()
   }
 }
 
