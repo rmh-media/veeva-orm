@@ -2,6 +2,7 @@ import { QueryType, SortDirection } from '../Adapters/AdapterQuery'
 import AdapterResult from '../Adapters/AdapterResult'
 
 import QueryWithWhereClause from './QueryWithWhereClause'
+import IAdapter from '../Adapters/IAdapter'
 
 /**
  * Represents a Select query which can be used to get data for
@@ -29,8 +30,15 @@ export default class SelectQuery extends QueryWithWhereClause {
     return this
   }
 
-  from (object: string): SelectQuery {
+  from (object: string): this {
     this._adapterQuery.object = object
+
+    return this
+  }
+
+  fromCurrent(object: string): this {
+    this._adapterQuery.object = object
+    this._adapterQuery.type = QueryType.SELECT_CURRENT
 
     return this
   }
@@ -58,8 +66,8 @@ export default class SelectQuery extends QueryWithWhereClause {
     return this
   }
 
-  async count (): Promise<number> {
-    const items = await this.exec()
+  async count (adapter: IAdapter | null = null): Promise<number> {
+    const items = await this.exec(adapter)
 
     return items.objects.length
   }

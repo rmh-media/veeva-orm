@@ -1,7 +1,10 @@
+import { QueryType } from '../Adapters/AdapterQuery'
+
 import BaseQuery from './BaseQuery'
-import { InsertValues, QueryType } from '../Adapters/AdapterQuery'
 
-
+export interface InsertValues {
+  [key: string]: number | string | boolean
+}
 
 /**
  * Represents a Select query which can be used to get data for
@@ -12,7 +15,10 @@ export default class InsertQuery extends BaseQuery {
     super();
 
     this._adapterQuery.type = QueryType.INSERT
-    this._adapterQuery.values = data
+
+    Object.keys(data).forEach(key => {
+      this._adapterQuery.values.set(key, data[key])
+    })
   }
 
   into (object: string): this {

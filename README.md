@@ -31,12 +31,11 @@ We are currently targeting MyInsights and CLM – but we might add Engage in the
 | Query: Delete | 🚼 | 🚼 | 🚼 |
 | Query: Update | 🚼 | 🚼 | 🚼 |
 
-
 ## Usage
 
 **Install it**
 ```bash
-# Install Core and MyInsights Adapter
+# Install Library and store it to dependencies
 npm install @rmh-media/veeva-orm --save
 ```
 
@@ -59,27 +58,30 @@ console.log(`I am ${currentAccount.Name}`) // I am Batman
 import { Model } from '@rmh-media/veeva-orm'
 
 class Hero extends Model {
+
   static identitiy() {
-    return { object: 'Hero__c', key: 'id' } 
+    // tell the ORM to which object this model is connected to
+    // and which field it should use as unique identifier (Id by default)
+    return { object: 'Hero__c', key: 'Id' } 
   }
 
-  static fields() {
+  static schema() {
+    // only fields which are set up in the schema are getting queried and populated
+    // after the query returns CRM data. Read more in the docs as you can get more fancy here.
     return {
-      Id: String,
-      Name: String
-    }
-  }
-
-  static mapping() {
-    return {
-      Id: 'id',
-      Name: 'name'
+      id: {
+        type: string,
+        mapping: 'Id' 
+      },
+      name: {
+        type: string,
+        mapping: 'Name'
+      }
     }
   }
 }
 
 const heroes = await Hero.repo().all()
-
 
 // who am i?
 console.log(`We have ${heroes.length} Heroes! ${heroes[0].name} is the first one`) // I am Batman

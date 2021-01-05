@@ -108,14 +108,19 @@ export default class MockAdapter implements IAdapter {
   }
 
   runQuery (query: AdapterQuery): Promise<AdapterResult> {
-    if (query.type === QueryType.SELECT) {
-      return this.runSelectQuery(query)
-    } else if (query.type === QueryType.SELECT_CURRENT) {
-      return this.runSelectCurrentQuery(query)
-    } else if (query.type === QueryType.INSERT) {
-      return this.runInsertQuery(query)
-    } else if (query.type === QueryType.DELETE) {
-      return this.runDeleteQuery(query)
+    switch (query.type) {
+      case QueryType.SELECT:
+        return this.runSelectQuery(query)
+      case QueryType.SELECT_CURRENT:
+        return this.runSelectCurrentQuery(query)
+      case QueryType.UPDATE:
+        return this.runUpdateQuery(query)
+      case QueryType.UPDATE_CURRENT:
+        return this.runUpdateCurrentQuery(query)
+      case QueryType.DELETE:
+        return this.runDeleteQuery(query)
+      case QueryType.INSERT:
+        return this.runInsertQuery(query)
     }
 
     throw new Error('Query Type not supported')
@@ -168,9 +173,6 @@ export default class MockAdapter implements IAdapter {
   }
 
   private static generateResult (query: AdapterQuery, objects: any[]): AdapterResult {
-    objects = objects
-      .map(project(query.fields))
-
     if (query.limit) {
       objects = objects.slice(0, query.limit)
     }
@@ -178,6 +180,9 @@ export default class MockAdapter implements IAdapter {
     if (query.sort.size) {
       objects = objects.sort(sort(query.sort))
     }
+
+    objects = objects
+      .map(project(query.fields))
 
     return {
       success: true,
@@ -198,7 +203,7 @@ export default class MockAdapter implements IAdapter {
       }
     }
 
-    const o = JSON.parse(JSON.stringify(query.values))
+    const o = JSON.parse(JSON.stringify(Object.fromEntries(query.values.entries())))
 
     if (this._objects.has(query.object)) {
       this._objects.get(query.object)!.push(o)
@@ -222,6 +227,31 @@ export default class MockAdapter implements IAdapter {
       objects.splice(objects.indexOf(o), 1)
     })
 
+    return Promise.resolve({
+      success: true,
+      objects: []
+    })
+  }
+
+  private runUpdateQuery (query: AdapterQuery): Promise<AdapterResult> {
+    this.validateQuery(query)
+
+    const objects = this._objects.get(query.object)!
+    const candidates = objects.filter(filter(query.where))
+
+    candidates.forEach(o => {
+      Object.assign(o, Object.fromEntries(query.values.entries()))
+    })
+
+    return Promise.resolve({
+      success: true,
+      objects: []
+    })
+  }
+
+  private runUpdateCurrentQuery (query: AdapterQuery): Promise<AdapterResult> {
+    this.validateQuery(query)
+    // todo
     return Promise.resolve({
       success: true,
       objects: []

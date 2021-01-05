@@ -5,6 +5,7 @@ import {
 } from '../Adapters/AdapterQuery'
 import AdapterResult from '../Adapters/AdapterResult'
 import Manager from '../Manager'
+import IAdapter from '../Adapters/IAdapter'
 
 export default class BaseQuery {
 
@@ -12,7 +13,7 @@ export default class BaseQuery {
     type: QueryType.SELECT,
     object: '',
     fields: [],
-    values: new Map<string, string>(),
+    values: new Map<string, string | number | boolean>(),
     where: [],
     limit: null,
     sort: new Map<string, SortDirection>()
@@ -22,10 +23,11 @@ export default class BaseQuery {
     return this._adapterQuery
   }
 
-  public async exec (): Promise<AdapterResult> {
-    return Manager
-      .getInstance()
-      .adapter
-      .runQuery(this._adapterQuery)
+  public async exec (adapter: IAdapter | null = null): Promise<AdapterResult> {
+    if (!adapter) {
+      adapter = Manager.getInstance().adapter
+    }
+
+    return adapter.runQuery(this._adapterQuery)
   }
 }

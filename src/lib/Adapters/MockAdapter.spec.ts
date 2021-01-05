@@ -2,12 +2,12 @@ import it from 'ava'
 
 import { Query } from '../../index'
 import objects from '../../test/fixtures/objects'
-import Manager from '../Manager'
 
 import { SortDirection } from './AdapterQuery'
 import MockAdapter from './MockAdapter'
+import IAdapter from './IAdapter'
 
-it.beforeEach(t => {
+function getAdapter (): IAdapter {
   const adapter = new MockAdapter()
 
   Object.keys(objects).forEach(key => {
@@ -17,14 +17,14 @@ it.beforeEach(t => {
     )
   })
 
-  Manager.getInstance().use(adapter)
-})
+  return adapter
+}
 
 it('should select all items', async t => {
   const result = await Query
     .select('Name')
     .from('Account')
-    .exec()
+    .exec(getAdapter())
 
   const names = result.objects.map(o => o.Name)
   const list = objects.Account.objects.map(o => o.Name)
@@ -37,7 +37,7 @@ it('should limit the results', async t => {
     .select('Name')
     .from('Account')
     .limit(2)
-    .exec()
+    .exec(getAdapter())
 
   const list = objects.Account.objects.map(o => o.Name).slice(0, 2)
   const names = result.objects.map(o => o.Name)
@@ -50,7 +50,7 @@ it('should order the results', async t => {
     .select('FirstName', 'LastName')
     .from('Account')
     .orderBy('LastName', SortDirection.DESC)
-    .exec()
+    .exec(getAdapter())
 
   const expected = objects.Account.objects.map(o => o.LastName).sort()
   const names = result.objects.map(o => o.LastName)
@@ -66,30 +66,58 @@ it('should add an object', async t => {
     Id: 'black-widow'
   }
 
+  const adapter = getAdapter()
+
   await Query
     .insert(natascha)
     .into('Account')
-    .exec()
+    .exec(adapter)
 
   const result = await Query
     .select('Name')
     .from('Account')
     .where('Id', 'black-widow')
-    .exec()
+    .exec(adapter)
 
   t.is(result.objects[0].Name, natascha.Name)
 })
 
 it('should delete objects', async t => {
+  const adapter = getAdapter()
+
   await Query
     .deleteFrom('Account')
     .where('FirstName', 'Peter')
-    .exec()
+    .exec(adapter)
 
   const count = await Query
     .select('Name')
     .from('Account')
-    .count()
+    .count(adapter)
 
-  t.is(objects.Account.objects.length - 1, count)
+  t.is(objects.Account.objects.length - 2, count)
+})
+
+it('should update objects', async t => {
+  const adapter = getAdapter()
+
+  await Query
+    .update('Account')
+    .set('Name', 'Unknown')
+    .where('FirstName', 'Peter')
+    .exec(adapter)
+
+  const results = await Query
+    .select('Name', 'LastName', 'FirstName')
+    .from('Account')
+    .where('FirstName', 'Peter')
+    .exec(adapter)
+
+  t.is(results.objects[0].FirstName, 'Peter')
+  t.is(results.objects[0].LastName, 'Quill')
+  t.is(results.objects[0].Name, 'Unknown')
+
+  t.is(results.objects[1].FirstName, 'Peter')
+  t.is(results.objects[1].LastName, 'Parker')
+  t.is(results.objects[1].Name, 'Unknown')
 })

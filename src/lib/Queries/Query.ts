@@ -1,7 +1,7 @@
-import SelectQuery from './SelectQuery'
-import { InsertValues } from '../Adapters/AdapterQuery'
-import InsertQuery from './InsertQuery'
 import DeleteQuery from './DeleteQuery'
+import InsertQuery, { InsertValues } from './InsertQuery'
+import SelectQuery from './SelectQuery'
+import UpdateQuery from './UpdateQuery'
 
 
 export default class Query {
@@ -21,5 +21,13 @@ export default class Query {
 
   static deleteFrom (object: string): DeleteQuery {
     return new DeleteQuery(object)
+  }
+
+  static update (object: string): UpdateQuery {
+    return new UpdateQuery(object)
+  }
+
+  static updateCurrent (object: string): UpdateQuery {
+    return this.update(object).current(true)
   }
 }
