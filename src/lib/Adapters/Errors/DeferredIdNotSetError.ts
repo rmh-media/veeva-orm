@@ -1,4 +1,4 @@
-class DeferredIdNotSetError extends Error {
+export class DeferredIdNotSetError extends Error {
   constructor () {
     super('Property deferredId not found on message')
 

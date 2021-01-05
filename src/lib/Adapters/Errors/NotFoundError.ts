@@ -1,4 +1,4 @@
-class NotFoundError extends Error {
+export class NotFoundError extends Error {
   public result: any = null
 
   constructor (object: string) {

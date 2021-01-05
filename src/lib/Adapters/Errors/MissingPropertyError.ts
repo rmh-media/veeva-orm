@@ -1,4 +1,4 @@
-class MissingPropertyError extends Error {
+export class MissingPropertyError extends Error {
   public result: any = null
 
   constructor (property: string, result: any) {

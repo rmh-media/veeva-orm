@@ -1,4 +1,4 @@
-class DeferredNotFoundError extends Error {
+export class DeferredNotFoundError extends Error {
   constructor () {
     super('Deferred not found in store')
 

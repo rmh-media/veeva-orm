@@ -1,4 +1,4 @@
-class UnexpectedResultError extends Error {
+export class UnexpectedResultError extends Error {
   public result: any = null
 
   constructor (result:any) {
