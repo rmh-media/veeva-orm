@@ -4,21 +4,8 @@ import { Query } from '../../index'
 import objects from '../../test/fixtures/objects'
 
 import { SortDirection } from './AdapterQuery'
-import IAdapter from './IAdapter'
 import MockAdapter from './MockAdapter'
-
-function getAdapter (): IAdapter {
-  const adapter = new MockAdapter()
-
-  Object.keys(objects).forEach(key => {
-    adapter.fill(
-      key,
-      JSON.parse(JSON.stringify(objects[key].objects))
-    )
-  })
-
-  return adapter
-}
+import { getAdapter } from '../../test/fixtures/utils/adapter'
 
 it('should select all items', async t => {
   const result = await Query

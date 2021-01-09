@@ -1,35 +1,100 @@
-import { FieldType, ModelResolverFunction, Schema } from './Schema'
-import { Repository } from './Repository'
-import { SchemaMissingError } from './Errors/SchemaMissingError'
+import { Query } from '../../index'
+import IAdapter from '../Adapters/IAdapter'
+
 import { KeyFieldMissingError } from './Errors/KeyFieldMissingError'
+import { ModelResolverFunction, Schema } from './Schema'
 
 export interface ModelData {
   [key: string]: any
 }
 
-export abstract class Model {
+export class Model {
   private _created = false
-  private _properties: ModelData = {}
+  static _schema: Schema = new Schema()
 
-  static $schema: Schema = new Schema({
-    id: {
-      type: FieldType.TEXT,
-      name: 'Id'
-    }
-  })
-
-  static repo () {
-    return new Repository(this)
-  }
-
-  constructor (data: ModelData) {
-    data = data || {}
-
-    if (Object.keys(data).length > 0) {
-      this.fill(data)
-    }
+  constructor (data: ModelData = {}) {
+    Object.keys(data).forEach(key => {
+      this[key] = data[key]
+    })
 
     this._created = false
+  }
+
+  static all (adapter: IAdapter | null = null): Promise<Model[]> {
+    return this.query()
+      .exec(adapter)
+      .then(res => res.objects)
+  }
+
+  static current (adapter: IAdapter | null = null): Promise<Model | null> {
+    return this.query().current()
+      .exec(adapter)
+      .then(res => {
+        return res.objects.length === 1
+          ? res.objects[0]
+          : null
+      })
+  }
+
+  static find (id: string, adapter: IAdapter | null = null): Promise<Model | null> {
+    if (!this._schema.keyField()) {
+      return Promise.resolve(null)
+    }
+
+    const keyField = this._schema.get(this._schema.keyField()!)
+
+    return this
+      .query()
+      .limit(1)
+      .where(keyField.name, id)
+      .exec(adapter)
+      .then(res => {
+        return res.objects.length === 1
+          ? res.objects[0]
+          : null
+      })
+  }
+
+  /**
+   * Query object
+   *
+   * @return {Query}
+   */
+  static query () {
+    return Query
+      .select(...this._schema.crmFields())
+      .from(this._schema.getObject())
+
+      // we will add a default post processor which generates models
+      // our of the raw data we will receive by the CRM adapter
+      .addPostProcessor(result => {
+        return Promise
+          .all(result.objects.map(this._makeModel.bind(this)))
+          .then(models => {
+            return {
+              success: true,
+              objects: models
+            }
+          })
+      })
+  }
+
+  /**
+   * Creates a new model (which is coming from CRM Data)
+   *
+   * @param input
+   * @private
+   */
+  private static _makeModel (input: any): Promise<Model> {
+    return (new this())
+      .fill(input as ModelData)
+      .then(model => {
+        // we have initially filled everything from the CRM here...
+        // therefore we will mark it as "already created in crm"
+        model._created = true
+
+        return model
+      })
   }
 
   /**
@@ -42,123 +107,50 @@ export abstract class Model {
   /**
    * Retrieve the identifying key (internal name)
    */
-  getKey (): any {
-    const schema = (this.constructor as typeof Model).$schema
-    const key = schema.internalKey()
+  getKey (): string | number | undefined {
+    const schema = (this.constructor as typeof Model)._schema
+    const key = schema.keyField()
 
     if (!key) {
       throw new KeyFieldMissingError()
     }
 
-    return this.getProperty(key)
+    return this[key]
   }
 
   /**
-   * Get a property out of our internal storage bag
-   * uses get[NAME]Property Accessors
-   *
-   * @param name - Name of the property to get
-   * @returns the property data
-   */
-  getProperty (name: string): any {
-    const fnName = 'get' + name.charAt(0).toUpperCase() + name.slice(1) + 'Property'
-
-    if (typeof this[fnName] === 'function') {
-      return this[fnName]()
-    }
-
-    return this._properties[name]
-  }
-
-  /**
-   * Sets a property
-   *
-   * @param name – the name of the field to set
-   * @param value – the value to set
-   */
-  setProperty (name: string, value: any) {
-    // ensure the property is defined
-    this._defineProperty(name)
-
-    // we want to call e.g. setNameProperty if available
-    const fnName = 'set' + name.charAt(0).toUpperCase() + name.slice(1) + 'Property'
-
-    if (typeof this[fnName] === 'function') {
-      // we call the function without any tricks, we leave the input value untouched
-      return this[fnName](value)
-    }
-
-    // finally set it
-    this._properties[name] = value
-
-    return this
-  }
-
-
-  /**
-   * Define a property if it does not exist
-   * and set getter and setter
-   *
-   * @param {string} key
-   * @private
-   */
-  _defineProperty (key: string) {
-    if (Object.hasOwnProperty.call(this, key)) {
-      // already defined
-      return
-    }
-
-    const schema = (this.constructor as typeof Model).$schema
-
-    // check if we have a definition for this item?
-    if (!schema.has(key)) {
-      throw new SchemaMissingError(key)
-    }
-
-    Object.defineProperty(this, key, {
-      get: () => {
-        return this.getProperty(key)
-      },
-      set: (value) => {
-        return this.setProperty(key, value)
-      }
-    })
-  }
-
-  /**
-   * Fills our internal storage bag with property data
+   * Uses incoming CRM data to fill the model
    *
    * @param {Object} data - Model properties
    * @returns this
    */
-  fill (data: ModelData) {
-    const schema = (this.constructor as typeof Model).$schema
+  fill (data: ModelData): Promise<Model> {
+    const schema = (this.constructor as typeof Model)._schema
 
     // we will fill all simple properties first
     schema
       .simpleFields()
       .forEach(key => {
         // set properties
-        this.setProperty(key, data[key])
+        this[key] = data[schema.get(key).name]
       })
 
     // we are basically done, but we want to check for complex data types...
     const promises = schema
       .complexFields()
       .map(complexPropertyKey => {
-        const rawDataValue = data && data[complexPropertyKey]
+        const rawDataValue = data[complexPropertyKey] || null
           ? data[complexPropertyKey]
           : null
 
         // call the model resolver with our model and save the return value
-        const resolver = schema.get(complexPropertyKey).type as ModelResolverFunction
+        const resolver = schema.get(complexPropertyKey).resolver as ModelResolverFunction
 
         return resolver(this, rawDataValue)
           .then(data => {
             // we should have received a result from the promise here now
             // and want to populate our property with it
-
-            this.setProperty(complexPropertyKey, data)
+            this[complexPropertyKey] = data
           })
       })
 
@@ -169,6 +161,76 @@ export abstract class Model {
       .then(() => {
         return this
       })
+  }
+
+  /**
+   * Save model
+   *
+   * @return boolean
+   */
+  save (adapter: IAdapter | null = null): Promise<Model> {
+    return this.isCreated()
+      ? this._update(adapter)
+      : this._store(adapter)
+  }
+
+  private _store (adapter: IAdapter | null = null): Promise<Model> {
+    const schema = (this.constructor as typeof Model)._schema
+
+    // lets get the data from our object here
+    const data = schema.simpleFields().reduce((obj, key) => {
+      obj[schema.get(key).name] = this[key]
+      return obj
+    }, {})
+
+    // lets build the insert query and run it
+    return Query
+      .insert(data)
+      .into(schema.getObject())
+      .exec(adapter)
+      .then(res => {
+        const data = res.objects[0]
+        const keyField = schema.keyField()
+
+        // we are now created :)
+        this._created = true
+
+        // set the keyfield to the new object id if possible
+        if (
+          keyField
+          && Object.hasOwnProperty.call(data, 'objectId')
+          && Object.hasOwnProperty.call(this, keyField)
+        ) {
+          this[keyField] = data.objectId
+        }
+
+        // return the updated model as the promise result
+        return this
+      })
+  }
+
+  private _update (adapter: IAdapter | null = null): Promise<Model> {
+    const schema = (this.constructor as typeof Model)._schema
+    const keyField = schema.keyField()
+
+    if (!keyField) {
+      throw new KeyFieldMissingError()
+    }
+
+    const query = Query.update(schema.getObject())
+
+    // fill query
+    schema.simpleFields().forEach(key => {
+      query.set(schema.get(key).name, this[key])
+    })
+
+    // only this one
+    query.where(schema.get(keyField).name, this.getKey())
+
+    // return this
+    return query.exec(adapter).then(() => {
+      return this
+    })
   }
 }
 

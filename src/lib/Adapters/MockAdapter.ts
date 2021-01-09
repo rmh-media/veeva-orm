@@ -122,16 +122,11 @@ export default class MockAdapter implements IAdapter {
       this._schemas.set(object, Object.keys(items[0]))
     }
 
-    console.debug(`Set ${object} with ${items.length} items`)
-
     return this
   }
 
   setDefaultId (object: string, id: string): this {
     this._defaults.set(object, id)
-
-    console.debug(`Set Current Id "${id}" for "${object}"`)
-
     return this
   }
 
@@ -221,7 +216,14 @@ export default class MockAdapter implements IAdapter {
       this.fill(query.object, [o])
     }
 
-    return MockAdapter.emptyResult()
+    return Promise.resolve({
+      success: true,
+      objects: [
+        Object.assign(o, {
+          objectId: Math.ceil(Math.random() * Date.now())
+        })
+      ]
+    })
   }
 
   private runDeleteQuery (query: AdapterQuery): Promise<AdapterResult> {
@@ -242,9 +244,10 @@ export default class MockAdapter implements IAdapter {
 
     const objects = this._objects.get(query.object)!
     const candidates = objects.filter(filter(query.where))
+    const data = Object.fromEntries(query.values.entries())
 
     candidates.forEach(o => {
-      Object.assign(o, Object.fromEntries(query.values.entries()))
+      Object.assign(o, data)
     })
 
     return MockAdapter.emptyResult()

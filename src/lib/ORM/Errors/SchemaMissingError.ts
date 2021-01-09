@@ -1,6 +1,6 @@
 export class SchemaMissingError extends Error {
-  constructor (fieldName: string) {
-    super(`No Schema definition for field "${fieldName}"`)
+  constructor (className: string) {
+    super(`Cannot find property _schema in Model ${className}, did you forget to extend from Model?`)
 
     this.name = 'SchemaMissingError'
   }

@@ -11,7 +11,7 @@ export enum FieldType {
 }
 
 export interface FieldSchema {
-  type: ModelResolverFunction | FieldType,
+  resolver?: ModelResolverFunction,
   name: string,
   primary?: boolean
 }
@@ -21,23 +21,36 @@ export interface FieldsSchema {
 }
 
 export class Schema {
-  private readonly _fields: FieldsSchema
+  protected _fields: FieldsSchema = {}
+  protected _object: string = ''
 
-  constructor (fields: FieldsSchema) {
-    this._fields = fields
+  setObject (object: string): this {
+    this._object = object
+    return this
+  }
+
+  getObject (): string {
+    return this._object
+  }
+
+  addField (field: string, schema: FieldSchema): this {
+    this._fields[field] = schema
+
+    return this
   }
 
   simpleFields (): string[] {
-    return Object.keys(this._fields)
+    return Object
+      .keys(this._fields)
       .filter(k => {
-        return typeof this._fields[k].type !== 'function'
+        return !Object.hasOwnProperty.call(this._fields[k], 'resolver')
       })
   }
 
   complexFields (): string[] {
     return Object.keys(this._fields)
       .filter(k => {
-        return typeof this._fields[k].type === 'function'
+        return Object.hasOwnProperty.call(this._fields[k], 'resolver')
       })
   }
 
@@ -49,8 +62,14 @@ export class Schema {
     return Object.hasOwnProperty.call(this._fields, key)
   }
 
-  internalKey (): string | null {
+  keyField (): string | null {
     const key = Object.keys(this._fields).find(k => this._fields[k].primary)
     return key ?? null
+  }
+
+  crmFields (): string[] {
+    return Object.keys(this._fields).map(key => {
+      return this._fields[key].name
+    })
   }
 }

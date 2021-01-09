@@ -3,6 +3,7 @@ import AdapterResult from '../Adapters/AdapterResult'
 
 import QueryWithWhereClause from './QueryWithWhereClause'
 import IAdapter from '../Adapters/IAdapter'
+import { SchemaMissingError } from '../ORM/Errors/SchemaMissingError'
 
 /**
  * Represents a Select query which can be used to get data for
@@ -53,7 +54,7 @@ export default class SelectQuery extends QueryWithWhereClause {
     return this.exec()
       .then(result => {
         if (result.objects.length < 1) {
-          throw new NotFoundError(this._adapterQuery.object)
+          throw new SchemaMissingError(this._adapterQuery.object)
         }
 
         return result.objects[0]

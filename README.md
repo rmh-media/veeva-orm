@@ -20,6 +20,7 @@ We are currently targeting MyInsights and CLM – but we might add Engage in the
 ## Features / Status
 
 - ❌ Won't be implemented
+- ⏰ Not implemented – priority pushed back
 - 🚼 Work in Progress
 - ✅ Fully Implemented
 - ⚠️ With Limitations
@@ -28,8 +29,9 @@ We are currently targeting MyInsights and CLM – but we might add Engage in the
 | ------- | :-------------: | :------------: | :----------: |
 | Query: Select | 🚼 | 🚼 | ✅ |
 | Query: Insert | 🚼 | 🚼 | ✅ |
-| Query: Delete | 🚼 | 🚼 | ✅ |
 | Query: Update | 🚼 | 🚼 | ✅ |
+| Query: Delete | 🚼 | 🚼 | ⏰ |
+
 
 ## Usage
 
