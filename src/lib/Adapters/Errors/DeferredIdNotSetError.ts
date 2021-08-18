@@ -1,7 +1,7 @@
 export class DeferredIdNotSetError extends Error {
-  constructor () {
-    super('Property deferredId not found on message')
+  constructor() {
+    super('Property deferredId not found on message');
 
-    this.name = 'DeferredIdNotSetError'
+    this.name = 'DeferredIdNotSetError';
   }
 }

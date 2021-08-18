@@ -1,75 +1,66 @@
-import { Model } from './Model'
-
-export interface ModelResolverFunction {
-  (parentModel: Model, rawData: any): any
+export interface ModelResolverFunction<T> {
+  (parentModel: T, rawData: any): Promise<any>;
 }
 
-export enum FieldType {
-  TEXT,
-  NUMBER,
-  BOOLEAN
+export interface FieldSchema<T> {
+  resolver?: ModelResolverFunction<T>;
+  name?: string;
+  primary?: boolean;
 }
 
-export interface FieldSchema {
-  resolver?: ModelResolverFunction,
-  name: string,
-  primary?: boolean
+export interface FieldsSchema<T> {
+  [fieldName: string]: FieldSchema<T>;
 }
 
-export interface FieldsSchema {
-  [fieldName: string]: FieldSchema
-}
+export class Schema<T> {
+  protected _fields: FieldsSchema<T> = {};
+  protected _object = '';
 
-export class Schema {
-  protected _fields: FieldsSchema = {}
-  protected _object: string = ''
-
-  setObject (object: string): this {
-    this._object = object
-    return this
+  setObject(object: string): this {
+    this._object = object;
+    return this;
   }
 
-  getObject (): string {
-    return this._object
+  getObject(): string {
+    return this._object;
   }
 
-  addField (field: string, schema: FieldSchema): this {
-    this._fields[field] = schema
+  addField(field: string, schema: FieldSchema<T>): this {
+    this._fields[field] = schema;
 
-    return this
+    return this;
   }
 
-  simpleFields (): string[] {
-    return Object
-      .keys(this._fields)
-      .filter(k => {
-        return !Object.hasOwnProperty.call(this._fields[k], 'resolver')
-      })
+  simpleFields(): string[] {
+    return Object.keys(this._fields).filter((k) => {
+      return !Object.hasOwnProperty.call(this._fields[k], 'resolver');
+    });
   }
 
-  complexFields (): string[] {
+  complexFields(): string[] {
+    return Object.keys(this._fields).filter((k) => {
+      return Object.hasOwnProperty.call(this._fields[k], 'resolver');
+    });
+  }
+
+  get(key: string): FieldSchema<T> {
+    return this._fields[key];
+  }
+
+  has(key: string): boolean {
+    return Object.hasOwnProperty.call(this._fields, key);
+  }
+
+  keyField(): string | null {
+    const key = Object.keys(this._fields).find((k) => this._fields[k].primary);
+    return key ?? null;
+  }
+
+  crmFields(): string[] {
     return Object.keys(this._fields)
-      .filter(k => {
-        return Object.hasOwnProperty.call(this._fields[k], 'resolver')
-      })
-  }
-
-  get (key: string): FieldSchema {
-    return this._fields[key]
-  }
-
-  has (key: string): boolean {
-    return Object.hasOwnProperty.call(this._fields, key)
-  }
-
-  keyField (): string | null {
-    const key = Object.keys(this._fields).find(k => this._fields[k].primary)
-    return key ?? null
-  }
-
-  crmFields (): string[] {
-    return Object.keys(this._fields).map(key => {
-      return this._fields[key].name
-    })
+      .filter((key) => Object.hasOwnProperty.call(this._fields[key], 'name'))
+      .map((key) => {
+        return this._fields[key].name!;
+      });
   }
 }

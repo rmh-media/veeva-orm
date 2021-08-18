@@ -1,6 +1,6 @@
-import { AdapterQuery } from './AdapterQuery'
-import AdapterResult from './AdapterResult'
+import { AdapterQuery } from './AdapterQuery';
+import AdapterResult from './AdapterResult';
 
 export default interface IAdapter {
-  runQuery (query: AdapterQuery): Promise<AdapterResult>
+  runQuery(query: AdapterQuery): Promise<AdapterResult>;
 }

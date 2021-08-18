@@ -1,53 +1,51 @@
-import { SortDirection, Term } from '../AdapterQuery'
+import { SortDirection, Term } from '../AdapterQuery';
 
-function formatBooleanValue (v: boolean): string {
-  return v ? 'true' : 'false'
+function formatBooleanValue(v: boolean): string {
+  return v ? 'true' : 'false';
 }
 
-function formatValue (value: any): string {
+function formatValue(value: any): string {
   if (typeof value === 'boolean') {
-    return formatBooleanValue(value as boolean)
+    return formatBooleanValue(value as boolean);
   }
 
   if (typeof value === 'number') {
-    return value + ''
+    return value + '';
   }
 
-  return `'${value}'`
+  return `'${value}'`;
 }
 
-function buildWhereTerm (t: Term): string {
+function buildWhereTerm(t: Term): string {
   if (t.operator.toUpperCase() === 'IN') {
     const stringifiedValues = (t.value as Array<any>)
-      .map(v => {
-        return JSON.stringify(formatValue(v))
+      .map((v) => {
+        return JSON.stringify(formatValue(v));
       })
-      .join(',')
+      .join(',');
 
-    return `${t.field} IN '{ ${stringifiedValues} }'`
+    return `${t.field} IN '{ ${stringifiedValues} }'`;
   }
 
-  return `${t.field} ${t.operator} ${formatValue(t.value)}`
+  return `${t.field} ${t.operator} ${formatValue(t.value)}`;
 }
 
-export function buildWhereClause (termGroups: Array<Array<Term>>): string {
+export function buildWhereClause(termGroups: Array<Array<Term>>): string {
   const clause = termGroups
     .map((terms) => {
-      return `(${terms.map(buildWhereTerm).join(' AND ')})`
+      return `(${terms.map(buildWhereTerm).join(' AND ')})`;
     })
-    .join(' OR ')
+    .join(' OR ');
 
-  return clause.length
-    ? 'WHERE ' + clause
-    : ''
+  return clause.length ? 'WHERE ' + clause : '';
 }
 
-export function buildSortClause (sort: Map<string, SortDirection>) {
-  const items: string[] = []
+export function buildSortClause(sort: Map<string, SortDirection>) {
+  const items: string[] = [];
 
   for (const [key, value] of sort) {
-    items.push(`${key} ${value}`)
+    items.push(`${key} ${value}`);
   }
 
-  return items
+  return items;
 }

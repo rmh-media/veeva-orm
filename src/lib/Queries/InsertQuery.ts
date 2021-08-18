@@ -1,9 +1,9 @@
-import { QueryType } from '../Adapters/AdapterQuery'
+import { QueryType } from '../Adapters/AdapterQuery';
 
-import BaseQuery from './BaseQuery'
+import BaseQuery from './BaseQuery';
 
 export interface InsertValues {
-  [key: string]: number | string | boolean
+  [key: string]: number | string | boolean;
 }
 
 /**
@@ -11,19 +11,19 @@ export interface InsertValues {
  * current call objects or default/custom object data.
  */
 export default class InsertQuery extends BaseQuery {
-  constructor (data: InsertValues) {
+  constructor(data: InsertValues) {
     super();
 
-    this._adapterQuery.type = QueryType.INSERT
+    this._adapterQuery.type = QueryType.INSERT;
 
-    Object.keys(data).forEach(key => {
-      this._adapterQuery.values.set(key, data[key])
-    })
+    Object.keys(data).forEach((key) => {
+      this._adapterQuery.values.set(key, data[key]);
+    });
   }
 
-  into (object: string): this {
-    this._adapterQuery.object = object
+  into(object: string): this {
+    this._adapterQuery.object = object;
 
-    return this
+    return this;
   }
 }

@@ -1,19 +1,19 @@
-import { QueryType, SortDirection } from '../Adapters/AdapterQuery'
-import AdapterResult from '../Adapters/AdapterResult'
+import { QueryType, SortDirection } from '../Adapters/AdapterQuery';
+import AdapterResult from '../Adapters/AdapterResult';
+import IAdapter from '../Adapters/IAdapter';
+import { SchemaMissingError } from '../ORM/Errors/SchemaMissingError';
 
-import QueryWithWhereClause from './QueryWithWhereClause'
-import IAdapter from '../Adapters/IAdapter'
-import { SchemaMissingError } from '../ORM/Errors/SchemaMissingError'
+import QueryWithWhereClause from './QueryWithWhereClause';
 
 /**
  * Represents a Select query which can be used to get data for
  * current call objects or default/custom object data.
  */
 export default class SelectQuery extends QueryWithWhereClause {
-  constructor (fields: Array<string>) {
+  constructor(fields: Array<string>) {
     super();
 
-    this._adapterQuery.fields = fields
+    this._adapterQuery.fields = fields;
   }
 
   /**
@@ -21,55 +21,54 @@ export default class SelectQuery extends QueryWithWhereClause {
    *
    * @param shouldUseCurrentCallData
    */
-  current (shouldUseCurrentCallData = true): SelectQuery {
+  current(shouldUseCurrentCallData = true): SelectQuery {
     if (shouldUseCurrentCallData) {
-      this._adapterQuery.type = QueryType.SELECT_CURRENT
+      this._adapterQuery.type = QueryType.SELECT_CURRENT;
     } else {
-      this._adapterQuery.type = QueryType.SELECT
+      this._adapterQuery.type = QueryType.SELECT;
     }
 
-    return this
+    return this;
   }
 
-  from (object: string): this {
-    this._adapterQuery.object = object
+  from(object: string): this {
+    this._adapterQuery.object = object;
 
-    return this
+    return this;
   }
 
   fromCurrent(object: string): this {
-    this._adapterQuery.object = object
-    this._adapterQuery.type = QueryType.SELECT_CURRENT
+    this._adapterQuery.object = object;
+    this._adapterQuery.type = QueryType.SELECT_CURRENT;
 
-    return this
+    return this;
   }
 
-  orderBy (field: string, direction: SortDirection = SortDirection.ASC): this {
-    this._adapterQuery.sort.set(field, direction)
+  orderBy(field: string, direction: SortDirection = SortDirection.ASC): this {
+    this._adapterQuery.sort.set(field, direction);
 
-    return this
+    return this;
   }
 
-  firstOrFail (): Promise<AdapterResult> {
-    return this.exec()
-      .then(result => {
-        if (result.objects.length < 1) {
-          throw new SchemaMissingError(this._adapterQuery.object)
-        }
+  firstOrFail(): Promise<AdapterResult> {
+    return this.exec().then((result) => {
+      if (result.objects.length < 1) {
+        throw new SchemaMissingError(this._adapterQuery.object);
+      }
 
-        return result.objects[0]
-      })
+      return result.objects[0];
+    });
   }
 
-  limit (limit: number): this {
-    this._adapterQuery.limit = limit
+  limit(limit: number): this {
+    this._adapterQuery.limit = limit;
 
-    return this
+    return this;
   }
 
-  async count (adapter: IAdapter | null = null): Promise<number> {
-    const items = await this.exec(adapter)
+  async count(adapter: IAdapter | null = null): Promise<number> {
+    const items = await this.exec(adapter);
 
-    return items.objects.length
+    return items.objects.length;
   }
 }

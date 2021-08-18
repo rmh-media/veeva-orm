@@ -1,14 +1,11 @@
-import { SchemaMissingError } from '../Errors/SchemaMissingError'
-import { Model } from '../Model'
+import { Model, ModelConstructor } from '../Model';
+import { Repository } from '../Repository';
 
-const VeevaObject = function (objectName: string) {
-  return (target: typeof Model) => {
-    if (!target._schema) {
-      throw new SchemaMissingError(target.name)
-    }
+const VeevaObject = function <T extends Model>(objectName: string) {
+  return (target: ModelConstructor<T>) => {
+    target._repository = new Repository<T>(target);
+    target._repository._schema.setObject(objectName);
+  };
+};
 
-    target._schema.setObject(objectName)
-  }
-}
-
-export default VeevaObject
+export default VeevaObject;

@@ -1,12 +1,12 @@
-import { QueryType } from '../Adapters/AdapterQuery'
+import { QueryType } from '../Adapters/AdapterQuery';
 
-import QueryWithWhereClause from './QueryWithWhereClause'
+import QueryWithWhereClause from './QueryWithWhereClause';
 
 export default class UpdateQuery extends QueryWithWhereClause {
-  constructor (object: string) {
+  constructor(object: string) {
     super();
-    this._adapterQuery.type = QueryType.UPDATE
-    this._adapterQuery.object = object
+    this._adapterQuery.type = QueryType.UPDATE;
+    this._adapterQuery.object = object;
   }
 
   /**
@@ -14,18 +14,18 @@ export default class UpdateQuery extends QueryWithWhereClause {
    *
    * @param shouldUseCurrentCallData
    */
-  current (shouldUseCurrentCallData = true): this {
+  current(shouldUseCurrentCallData = true): this {
     if (shouldUseCurrentCallData) {
-      this._adapterQuery.type = QueryType.UPDATE_CURRENT
+      this._adapterQuery.type = QueryType.UPDATE_CURRENT;
     } else {
-      this._adapterQuery.type = QueryType.UPDATE
+      this._adapterQuery.type = QueryType.UPDATE;
     }
 
-    return this
+    return this;
   }
 
-  set (field: string, value: string | number | boolean): this {
-    this._adapterQuery.values.set(field, value)
-    return this
+  set(field: string, value: string | number | boolean): this {
+    this._adapterQuery.values.set(field, value);
+    return this;
   }
 }

@@ -1,4 +1,4 @@
-import BaseQuery from './BaseQuery'
+import BaseQuery from './BaseQuery';
 
 export enum Operator {
   EQUALS = '=',
@@ -7,52 +7,52 @@ export enum Operator {
 }
 
 export default class QueryWithWhereClause extends BaseQuery {
-  constructor () {
-    super()
+  constructor() {
+    super();
 
     // default group
-    this._adapterQuery.where = [[]]
+    this._adapterQuery.where = [[]];
   }
 
-  public where (field: string, value: unknown): this {
+  public where(field: string, value: unknown): this {
     this._adapterQuery.where[0].push({
       field,
       operator: Operator.EQUALS,
-      value
-    })
+      value,
+    });
 
-    return this
+    return this;
   }
 
-  public whereIn (field: string, list: Array<unknown>): this {
+  public whereIn(field: string, list: Array<unknown>): this {
     this._adapterQuery.where[0].push({
       field,
       operator: Operator.IN,
-      value: list
-    })
+      value: list,
+    });
 
-    return this
+    return this;
   }
 
-  public whereLike (field: string, value: string): this {
+  public whereLike(field: string, value: string): this {
     this._adapterQuery.where[0].push({
       field,
       operator: Operator.LIKE,
-      value
-    })
+      value,
+    });
 
-    return this
+    return this;
   }
 
-  public orWhere (fn: (clause: QueryWithWhereClause) => void): this {
-    const q = new QueryWithWhereClause()
+  public orWhere(fn: (clause: QueryWithWhereClause) => void): this {
+    const q = new QueryWithWhereClause();
 
-    fn(q)
+    fn(q);
 
-    this._adapterQuery.where = this._adapterQuery
-      .where
-      .concat(this._adapterQuery.where)
+    this._adapterQuery.where = this._adapterQuery.where.concat(
+      this._adapterQuery.where
+    );
 
-    return this
+    return this;
   }
 }

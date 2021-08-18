@@ -1,19 +1,19 @@
-import { SchemaMissingError } from '../Errors/SchemaMissingError'
-import { Model } from '../Model'
+import { SchemaMissingError } from '../Errors/SchemaMissingError';
+import { Model } from '../Model';
 
 const VeevaObjectField = function (crmName: string, primary = false) {
   return (target: Model, prop: string) => {
-    const modelConstructor = (target.constructor as typeof Model)
+    const modelConstructor = target.constructor as typeof Model;
 
-    if (!modelConstructor._schema) {
-      throw new SchemaMissingError(modelConstructor.name)
+    if (!modelConstructor._repository) {
+      throw new SchemaMissingError(modelConstructor.name);
     }
 
-    modelConstructor._schema.addField(prop, {
+    modelConstructor._repository._schema.addField(prop, {
       primary,
-      name: crmName
-    })
-  }
-}
+      name: crmName,
+    });
+  };
+};
 
-export default VeevaObjectField
+export default VeevaObjectField;
