@@ -1,7 +1,7 @@
 import { QueryType, SortDirection } from '../Adapters/AdapterQuery';
 import AdapterResult from '../Adapters/AdapterResult';
 import IAdapter from '../Adapters/IAdapter';
-import { SchemaMissingError } from '../ORM/Errors/SchemaMissingError';
+import { VeevaObjectFieldMissingError } from '../ORM/Errors/VeevaObjectFieldMissingError';
 
 import QueryWithWhereClause from './QueryWithWhereClause';
 
@@ -53,7 +53,7 @@ export default class SelectQuery extends QueryWithWhereClause {
   firstOrFail(): Promise<AdapterResult> {
     return this.exec().then((result) => {
       if (result.objects.length < 1) {
-        throw new SchemaMissingError(this._adapterQuery.object);
+        throw new VeevaObjectFieldMissingError(this._adapterQuery.object);
       }
 
       return result.objects[0];

@@ -1,32 +1,45 @@
 import IAdapter from '../Adapters/IAdapter';
 
 import { Repository } from './Repository';
-// import SelectQuery from '../Queries/SelectQuery'
 
+/**
+ * Raw Model data interface
+ */
 export interface ModelData {
   [key: string]: any;
 }
 
+/**
+ * Model Constructor Interface
+ */
 export interface ModelConstructor<T extends Model> {
   new (data: ModelData): T;
-
-  _repository: Repository<T>;
 }
 
-export class Model {
-  _created = false;
-  static _repository: any; // todo better typing here, challenge: Repositories are generics
+/**
+ * Base Model Class
+ *
+ * @abstract
+ */
+export abstract class Model {
+  /**
+   * Has the Model been popularized from CRM through the Repository?
+   *
+   * @protected
+   */
+  protected _created = false;
 
+  /**
+   * Setup model
+   *
+   * @param {ModelData} data
+   */
   constructor(data: ModelData = {}) {
     Object.keys(data).forEach((key) => {
       this[key] = data[key];
     });
 
     this._created = false;
-  }
-
-  static repo(): any {
-    return {};
   }
 
   /**
@@ -37,26 +50,58 @@ export class Model {
   }
 
   /**
-   * Retrieve the identifying key (internal name)
+   * Sets Created status of the model
+   *
+   * @param {boolean} isCreated
+   * @returns {this}
    */
-  getKey(): string | number | undefined {
-    return (this.constructor as typeof Model).repo().keyOf(this);
-  }
+  setCreated(isCreated: boolean): this {
+    this._created = isCreated;
 
-  repo(): Repository<Model> {
-    return (this.constructor as typeof Model).repo();
+    return this;
   }
 
   /**
-   * Save model
+   * Returns Instance of Model repository
    *
-   * @return boolean
+   * @returns {Repository<T>}
    */
-  save(adapter: IAdapter | null = null): Promise<Model> {
+  repo<T extends Model>(): Repository<T> {
+    return this.constructor.prototype._repository;
+  }
+
+  /**
+   * Returns Instance of Model repository
+   *
+   * @returns {Repository<T>}
+   */
+  static repo<T extends Model>(): Repository<T> {
+    return this.prototype.constructor.prototype._repository;
+  }
+
+  /**
+   * Retrieve the identifying key (internal name)
+   *
+   * @returns {string | number | undefined}
+   */
+  getKey(): string | number | undefined {
+    return this.repo().keyOf(this);
+  }
+
+  /**
+   * Save model back to CRM
+   *
+   * @returns {Promise<this>}
+   */
+  async save(adapter: IAdapter | null = null): Promise<this> {
     const repo = this.repo();
 
-    return this.isCreated()
-      ? repo.update(this, adapter)
-      : repo.store(this, adapter);
+    if (this.isCreated()) {
+      await repo.update(this, adapter);
+    } else {
+      await repo.store(this, adapter);
+    }
+
+    return this;
   }
 }

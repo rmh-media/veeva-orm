@@ -107,6 +107,8 @@ export class Repository<T extends Model> {
     // we wait for all promises to finish
     // until we return our now fully populated model
     return Promise.all(promises).then(() => {
+      model.setCreated(true);
+
       return model;
     });
   }
@@ -114,7 +116,7 @@ export class Repository<T extends Model> {
   store(model: T, adapter: IAdapter | null = null): Promise<T> {
     // lets get the data from our object here
     const data = this._schema.simpleFields().reduce((obj, key) => {
-      obj[this._schema.get(key).name!] = this[key];
+      obj[this._schema.get(key).name!] = model[key];
       return obj;
     }, {});
 
@@ -127,7 +129,7 @@ export class Repository<T extends Model> {
         const keyField = this._schema.keyField();
 
         // we are now created :)
-        model._created = true;
+        model.setCreated(true);
 
         // set the keyfield to the new object id if possible
         if (
@@ -154,7 +156,7 @@ export class Repository<T extends Model> {
 
     // fill query
     this._schema.simpleFields().forEach((key) => {
-      query.set(this._schema.get(key).name!, this[key]);
+      query.set(this._schema.get(key).name!, model[key]);
     });
 
     // only this one

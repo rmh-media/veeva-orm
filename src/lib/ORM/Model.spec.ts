@@ -19,7 +19,7 @@ it('should create a query', async (t) => {
 });
 
 it('should find a model', async (t) => {
-  const captain: Account | null = await Account.repo().find(
+  const captain: Account | null = await Account.repo<Account>().find(
     'cap',
     getAdapter()
   );
@@ -29,13 +29,14 @@ it('should find a model', async (t) => {
 });
 
 it('should find the current model', async (t) => {
-  const ironman = await Account.repo().current(getAdapter());
+  const ironman = await Account.repo<Account>().current(getAdapter());
 
   t.is(ironman!.fullName(), 'Tony Stark');
 });
 
 it('should find all models', async (t) => {
   const accounts = await Account.repo().all(getAdapter());
+
   t.is(accounts.length, 6);
 });
 
@@ -49,7 +50,7 @@ it('should save a new model', async (t) => {
   });
 
   await newAccount.save(adapter);
-  const allAccounts = await Account.repo().all(adapter);
+  const allAccounts = await Account.repo<Account>().all(adapter);
 
   t.is(allAccounts.length, 7);
   t.is(allAccounts[6].fullName(), 'Carol Danvers');
@@ -57,17 +58,18 @@ it('should save a new model', async (t) => {
 
 it('should update a model', async (t) => {
   const adapter = getAdapter();
-  let falcon = await Account.repo().find('falcon', adapter);
-  falcon.last = 'Nobody';
+  let falcon = await Account.repo<Account>().find('falcon', adapter);
 
-  t.is(falcon.fullName(), 'Sam Nobody');
+  if (falcon) {
+    falcon.last = 'Nobody';
+  }
 
-  await falcon.save(adapter);
+  t.is(falcon?.fullName(), 'Sam Nobody');
 
-  falcon = await Account.repo().find('falcon', adapter);
+  await falcon?.save(adapter);
 
-  t.is(falcon.fullName(), 'Sam Nobody');
-  t.is(falcon.name, 'Falcon');
+  falcon = await Account.repo<Account>().find('falcon', adapter);
+
+  t.is(falcon?.fullName(), 'Sam Nobody');
+  t.is(falcon?.name, 'Falcon');
 });
-
-it.todo('should fetch with providers');

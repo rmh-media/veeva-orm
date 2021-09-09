@@ -1,16 +1,6 @@
 import VeevaObject from '../../../lib/ORM/Decorators/VeevaObject';
 import VeevaObjectField from '../../../lib/ORM/Decorators/VeevaObjectField';
 import { Model } from '../../../lib/ORM/Model';
-// import Address from './Address'
-
-// function resolvesAddresses (acc: Account): Promise<any> {
-//   return Address.query()
-//     .where('accountId', acc.id)
-//     .exec()
-//     .then(res => {
-//       return res.objects
-//     })
-// }
 
 @VeevaObject('Account')
 export default class Account extends Model {

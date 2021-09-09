@@ -1,18 +1,19 @@
-import { SchemaMissingError } from '../Errors/SchemaMissingError';
+import 'reflect-metadata';
 import { Model } from '../Model';
 
-const VeevaObjectField = function (crmName: string, primary = false) {
+export const VEEVA_PROPERTY_METADATA_KEY = 'veevaProperties';
+
+export const VeevaObjectField = (crmName: string, primary = false) => {
   return (target: Model, prop: string) => {
-    const modelConstructor = target.constructor as typeof Model;
+    const props =
+      Reflect.getOwnMetadata(VEEVA_PROPERTY_METADATA_KEY, target.constructor) ||
+      [];
 
-    if (!modelConstructor._repository) {
-      throw new SchemaMissingError(modelConstructor.name);
-    }
-
-    modelConstructor._repository._schema.addField(prop, {
-      primary,
-      name: crmName,
-    });
+    Reflect.defineMetadata(
+      'veevaProperties',
+      [...props, { prop, primary, crmName }],
+      target.constructor
+    );
   };
 };
 
